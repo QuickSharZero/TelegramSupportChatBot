@@ -8,6 +8,8 @@ from modules.config_handler import ConfigManager
 from modules.message_handler import MessageHandler
 
 from handlers.start import StartRouter
+from handlers.reload_messages import ReloadMessageRouter
+from handlers.get_chat_info import GetChatInfoRouter
 
 
 class TelegramBot:
@@ -25,8 +27,12 @@ class TelegramBot:
         print("Bot starting...")
         try:
             start = StartRouter(messages=self.messages)
+            reload_messages = ReloadMessageRouter(config=self.config, messages=self.messages)
+            get_chat_info = GetChatInfoRouter(config=self.config, messages=self.messages)
 
             self.dp.include_router(start.router)
+            self.dp.include_router(reload_messages.router)
+            self.dp.include_router(get_chat_info.router)
 
             await self.bot.delete_webhook(drop_pending_updates=True)
             await self.dp.start_polling(self.bot)
