@@ -14,6 +14,6 @@ class StartRouter:
     def _register_router(self):
         @self.router.message(Command('start'))
         async def start_command(message: types.Message):
-            text = await self.messages.get('start', 'greeting')
-            await message.answer(text)
+            text = await self.messages.get(key="start.greeting", message=message)
+            await message.answer(text, parse_mode='Markdown')
 
