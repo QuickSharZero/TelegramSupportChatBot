@@ -1,4 +1,4 @@
-## TelegramSupportChatBot
+## TelegramSupportChatBot [В разработке]
 ### Мой личный проект телеграм бота для тех. поддержки.
 
 ### Используется:
