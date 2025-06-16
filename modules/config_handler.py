@@ -9,7 +9,14 @@ class ConfigManager:
         "groupID": "",
         "admins": [
             0
-        ]
+        ],
+        "postgres": {
+            "host": "host",
+            "ports": 5432,
+            "username": "username",
+            "password": "password",
+            "database": "database"
+        }
     }
 
     def __init__(self):
