@@ -1,5 +1,6 @@
 from aiogram import Router, types
 from aiogram.filters import Command
+from logging import Logger
 
 from modules.message_handler import MessageHandler
 from modules.config_handler import ConfigManager
@@ -7,8 +8,9 @@ from modules.config_handler import ConfigManager
 
 class ReloadMessageRouter:
 
-    def __init__(self, config: ConfigManager, messages: MessageHandler):
+    def __init__(self, logger: Logger, config: ConfigManager, messages: MessageHandler):
         self.router = Router()
+        self.logger = logger
         self.messages = messages
         self.config = config
         self._register_router()
