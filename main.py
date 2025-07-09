@@ -7,6 +7,7 @@ import logging
 
 from modules.config_handler import ConfigManager
 from modules.message_handler import MessageHandler
+from modules.database_handler import DatabaseHandler
 
 from handlers.start import StartRouter
 from handlers.reload_messages import ReloadMessageRouter
@@ -16,7 +17,7 @@ from handlers.admins_message import AdminsMessageRouter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(filename)s -  %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(filename)s - %(levelname)s - %(message)s')
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
@@ -28,6 +29,11 @@ class TelegramBot:
         self.logger = logger
         self.config = ConfigManager()
         self.messages = MessageHandler()
+        self.database = DatabaseHandler(logger=self.logger, config=self.config)
+
+        if asyncio.run(self.database.check_connection()):
+            self.logger.info("База данных успешно подключена")
+            asyncio.run(self.database.create_tables())
 
         TOKEN = asyncio.run(self.config.get("token"))
 
@@ -37,11 +43,11 @@ class TelegramBot:
     async def run(self):
         self.logger.info("Bot starting...")
         try:
-            start = StartRouter(bot=self.bot, logger=self.logger, config=self.config, messages=self.messages)
+            start = StartRouter(bot=self.bot, logger=self.logger, database=self.database, config=self.config, messages=self.messages)
             reload_messages = ReloadMessageRouter(logger=self.logger, config=self.config, messages=self.messages)
             get_chat_info = GetChatInfoRouter(logger=self.logger, config=self.config, messages=self.messages)
-            user_message = UserMessageRouter(bot=self.bot, logger=self.logger, config=self.config, messages=self.messages)
-            admins_message = AdminsMessageRouter(bot=self.bot, logger=self.logger, config=self.config, messages=self.messages)
+            user_message = UserMessageRouter(bot=self.bot, logger=self.logger, database=self.database, config=self.config, messages=self.messages)
+            admins_message = AdminsMessageRouter(bot=self.bot, logger=self.logger, database=self.database, config=self.config, messages=self.messages)
 
             self.dp.include_router(start.router)
             self.dp.include_router(reload_messages.router)

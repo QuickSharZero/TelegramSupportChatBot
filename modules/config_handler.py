@@ -12,7 +12,7 @@ class ConfigManager:
         ],
         "postgres": {
             "host": "host",
-            "ports": 5432,
+            "port": 5432,
             "username": "username",
             "password": "password",
             "database": "database"
