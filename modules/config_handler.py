@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from logging import Logger
 
 
 class ConfigManager:
@@ -19,8 +20,10 @@ class ConfigManager:
         }
     }
 
-    def __init__(self):
+    def __init__(self, logger: Logger):
         self.config_path = Path("config.json")
+        self.logger = logger
+
         self._isConfigExists()
         self.config = self.load_config()
 
@@ -29,7 +32,7 @@ class ConfigManager:
             with self.config_path.open('r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"Ошибка чтения конфига\n{e}")
+            self.logger.error(f"Ошибка чтения конфига: {e}", exc_info=True)
 
     async def get(self, *keys):
         value = self.config
@@ -45,6 +48,6 @@ class ConfigManager:
             try:
                 with self.config_path.open('w', encoding='utf-8') as f:
                     json.dump(self.default_config, f, indent=4)
-                print("Файл конфигурации успешно создан")
+                self.logger.info("Файл конфигурации успешно создан")
             except Exception as e:
-                print(f"Не удалось создать файл конфигурации\n{e}")
+                self.logger.error(f"Не удалось создать файл конфигурации: {e}", exc_info=True)

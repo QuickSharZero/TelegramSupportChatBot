@@ -30,7 +30,9 @@ class ReloadMessageRouter:
                 except Exception as e:
                     text = await self.messages.get(key="reload_messages.error", message=message)
                     await message.answer(text, parse_mode="Markdown")
-                    print(f"Ошибка перезагрузки сообщений\n{e}")
+
+                    self.logger.error(f"Ошибка перезагрузки сообщений: {e}", exc_info=True)
+
                     return
 
             text = await self.messages.get(key="errors.NoPerm", message=message)

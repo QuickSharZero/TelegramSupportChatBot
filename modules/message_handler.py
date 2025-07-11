@@ -3,6 +3,7 @@ from pathlib import Path
 from aiogram.types import Message
 import re
 from typing import Optional
+from logging import Logger
 
 
 class MessageHandler:
@@ -26,8 +27,10 @@ class MessageHandler:
         }
     }
 
-    def __init__(self):
+    def __init__(self, logger: Logger):
         self.messages_file = Path("messages.yml")
+        self.logger = logger
+
         self._isFileExists()
 
         self.messages = self.load_messages()
@@ -37,7 +40,7 @@ class MessageHandler:
             with self.messages_file.open('r', encoding='utf-8') as f:
                 return yaml.safe_load(f)
         except Exception as e:
-            print(f"Ошибка чтения списка сообщений\n{e}")
+            self.logger.error(f"Ошибка чтения списка сообщений: {e}", exc_info=True)
 
     async def reload(self):
         self.messages = self.load_messages()
@@ -67,6 +70,6 @@ class MessageHandler:
             if not self.messages_file.exists():
                 with self.messages_file.open('w', encoding='utf-8') as f:
                     yaml.dump(self.default_messages, f)
-                    print("Файл сообщений создан!")
+                self.logger.info("Файл сообщений создан!")
         except Exception as e:
-            print(f"Не удалось создать файл сообшений\n{e}")
+            self.logger.error(f"Не удалось создать файл сообщений\n{e}", exc_info=True)

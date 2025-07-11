@@ -27,8 +27,8 @@ class TelegramBot:
 
     def __init__(self):
         self.logger = logger
-        self.config = ConfigManager()
-        self.messages = MessageHandler()
+        self.config = ConfigManager(logger=self.logger)
+        self.messages = MessageHandler(logger=self.logger)
         self.database = DatabaseHandler(logger=self.logger, config=self.config)
 
         if asyncio.run(self.database.check_connection()):
