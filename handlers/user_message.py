@@ -1,6 +1,11 @@
+from typing import Dict, List
+
 from aiogram import Router, types, F, Bot
 from aiogram.enums import ChatType
 from logging import Logger
+import asyncio
+
+from aiogram.utils.media_group import MediaGroupBuilder
 
 from modules.config_handler import ConfigManager
 from modules.message_handler import MessageHandler
@@ -19,32 +24,41 @@ class UserMessageRouter:
         self._register_route()
 
     def _register_route(self):
+
         @self.router.message(F.chat.type == ChatType.PRIVATE)
         async def user_message(message: types.Message):
 
             user = message.from_user
-            thread_id = await self.database.getThreadID(tgID=user.id)  # ID форума
-            chat_id = await self.config.get('groupID')  # ID группы
 
-            if await self.database.isUserBlocked(tgID=user.id):
+            if not await self.database.checkUserExists(tgID=user.id):
+                thread = await self.bot.create_forum_topic(chat_id=int(await self.config.get("groupID")),
+                                                           name=message.from_user.username)
+
+                threadID = thread.message_thread_id  # id созданного чата
+
+                await self.database.addUser(tgID=user.id,
+                                            username=user.username,
+                                            threadID=threadID)
                 return
 
-            if message.media_group_id:
-                await self.bot.send_media_group(chat_id=chat_id,
-                                                message_thread_id=thread_id,
-                                                media=message.media_group_id)
+            if await self.database.isUserBlocked(tgID=user.id):
+                await message.answer("Ваше сообщение не было доставлено т.к. вы заблокированы.")
+                return
+
+            thread_id = await self.database.getThreadID(tgID=user.id)  # ID форума
+            chat_id = await self.config.get('groupID')  # ID группы
 
             if message.sticker:
                 sticker = message.sticker.file_id
                 await self.bot.send_sticker(chat_id=chat_id,
                                             message_thread_id=thread_id,
                                             sticker=sticker)
-            if message.animation:
+            elif message.animation:
                 animation = message.animation.file_id
                 await self.bot.send_animation(chat_id=chat_id,
                                               message_thread_id=thread_id,
                                               animation=animation)
-            if message.video:
+            elif message.video:
                 video = message.video.file_id
                 caption = message.caption if message.caption else None
                 spoiler = message.has_media_spoiler if message.has_media_spoiler else None
@@ -53,7 +67,7 @@ class UserMessageRouter:
                                           video=video,
                                           caption=caption,
                                           has_spoiler=spoiler)
-            if message.photo:
+            elif message.photo:
                 photo = message.photo[-1].file_id
                 caption = message.caption if message.caption else None
                 spoiler = message.has_media_spoiler if message.has_media_spoiler else None
@@ -63,24 +77,24 @@ class UserMessageRouter:
                                           caption=caption,
                                           has_spoiler=spoiler)
 
-            if message.audio:
+            elif message.audio:
                 audio = message.audio.file_id
                 await self.bot.send_audio(chat_id=chat_id,
                                           message_thread_id=thread_id,
                                           audio=audio)
-            if message.document:
+            elif message.document:
                 document = message.document.file_id
                 caption = message.caption if message.caption else None
                 await self.bot.send_document(chat_id=chat_id,
                                              message_thread_id=thread_id,
                                              document=document,
                                              caption=caption)
-            if message.voice:
+            elif message.voice:
                 voice = message.voice.file_id
                 await self.bot.send_voice(chat_id=chat_id,
                                           message_thread_id=thread_id,
                                           voice=voice)
-            if message.text:
+            elif message.text:
                 reply_message = message.reply_to_message.message_id if message.reply_to_message else None
                 await self.bot.send_message(chat_id=chat_id,
                                             message_thread_id=thread_id,

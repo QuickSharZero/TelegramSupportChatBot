@@ -21,12 +21,16 @@ class AdminsMessageRouter:
         self._register_route()
 
     def _register_route(self):
+
         @self.router.message(F.chat.type == ChatType.SUPERGROUP)
         async def user_message(message: types.Message):
 
             user = message.from_user
             reaction = [ReactionTypeEmoji(emoji="👍")]
             bad_reaction = [ReactionTypeEmoji(emoji="👎")]
+
+            if message.message_thread_id is None:
+                return
 
             chat_id = await self.database.getUserID(threadID=message.message_thread_id)
 
@@ -45,7 +49,7 @@ class AdminsMessageRouter:
                     await self.bot.set_message_reaction(chat_id=message.chat.id,
                                                         message_id=message.message_id,
                                                         reaction=reaction)
-                if message.animation:
+                elif message.animation:
                     animation = message.animation.file_id
                     await self.bot.send_animation(chat_id=chat_id,
                                                   animation=animation)
@@ -63,7 +67,7 @@ class AdminsMessageRouter:
                     await self.bot.set_message_reaction(chat_id=message.chat.id,
                                                         message_id=message.message_id,
                                                         reaction=reaction)
-                if message.photo:
+                elif message.photo:
                     photo = message.photo[-1].file_id
                     caption = message.caption if message.caption else None
                     spoiler = message.has_media_spoiler if message.has_media_spoiler else None
@@ -74,14 +78,14 @@ class AdminsMessageRouter:
                     await self.bot.set_message_reaction(chat_id=message.chat.id,
                                                         message_id=message.message_id,
                                                         reaction=reaction)
-                if message.audio:
+                elif message.audio:
                     audio = message.audio.file_id
                     await self.bot.send_audio(chat_id=chat_id,
                                               audio=audio)
                     await self.bot.set_message_reaction(chat_id=message.chat.id,
                                                         message_id=message.message_id,
                                                         reaction=reaction)
-                if message.document:
+                elif message.document:
                     document = message.document.file_id
                     caption = message.caption if message.caption else None
                     await self.bot.send_document(chat_id=chat_id,
@@ -90,14 +94,14 @@ class AdminsMessageRouter:
                     await self.bot.set_message_reaction(chat_id=message.chat.id,
                                                         message_id=message.message_id,
                                                         reaction=reaction)
-                if message.voice:
+                elif message.voice:
                     voice = message.voice.file_id
                     await self.bot.send_voice(chat_id=chat_id,
                                               voice=voice)
                     await self.bot.set_message_reaction(chat_id=message.chat.id,
                                                         message_id=message.message_id,
                                                         reaction=reaction)
-                if message.text:
+                elif message.text:
                     await self.bot.send_message(chat_id=chat_id,
                                                 text=message.text)
                     await self.bot.set_message_reaction(chat_id=message.chat.id,
